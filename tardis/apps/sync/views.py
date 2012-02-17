@@ -42,7 +42,7 @@ from django.http import HttpResponse
 from django.template import Context
 from django.shortcuts import render_to_response
 
-from tardis.apps.sync.managers import manager, SyncManagerTransferError
+from tardis.apps.sync.managers import manager
 from tardis.apps.sync.models import SyncedExperiment
 from tardis.apps.sync.forms import FileTransferRequestForm
 from tardis.tardis_portal import models
