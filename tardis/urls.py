@@ -1,7 +1,7 @@
 from django.contrib import admin
 admin.autodiscover()
 from django.contrib.auth.views import logout
-from django.conf.urls.defaults import patterns, include
+from django.conf.urls.defaults import patterns, include, url
 from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
@@ -22,7 +22,7 @@ def getTardisApps():
 core_urls = patterns(
     'tardis.tardis_portal.views',
     (r'^$', 'index'),
-    (r'^site-settings.xml/$', 'site_settings'),
+    url(r'^site-settings.xml/$', 'site_settings', name='tardis-site-settings'),
     (r'^about/$', 'about'),
     (r'^stats/$', 'stats'),
     (r'^import_params/$', 'import_params'),
