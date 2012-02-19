@@ -182,3 +182,5 @@ DOI_RELATED_INFO_ENABLE = False
 DOI_BASE_URL='http://mytardis.example.com'
 
 djcelery.setup_loader()
+
+SYNC_MANAGER = 'managers.default_manager'
