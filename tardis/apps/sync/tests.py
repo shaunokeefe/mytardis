@@ -3,11 +3,17 @@
 from django.test import TestCase
 from django.db import models
 from django.contrib.auth.models import User
+from flexmock import flexmock
+
+from tardis.tardis_portal.models import Experiment
+
 from tardis.apps.sync.fields import FSMField, State, FinalState, transition_on_success
 from tardis.apps.sync.tasks import clock_tick
 from tardis.apps.sync.consumer_fsm import Complete, InProgress, FailPermanent, \
         CheckingIntegrity, Requested
 from tardis.apps.sync.models import SyncedExperiment
+from .transfer_service import TransferClient, TransferService
+
 
 class DontCloseTheDoor(Exception):
     pass
@@ -184,18 +190,29 @@ class ClockTestCase(TestCase):
 
         self.user = User(username='user1', password='password', email='a@a.com')
         self.user.save()
-
-    def testGetsNewEntries(self):
-
-        self.in_progress = SyncedExperiment(
-                url ="www.in_progress.com", 
+        self.exp = Experiment(
                 approved = True,
                 title = 'title1',
                 institution_name = 'institution1',
                 description = 'description1',
                 created_by = self.user,
-                public = True 
+                public = True
                 )
+        self.uid = 0
+        self.url = 'http://remotetardis:8080'
+
+        mock = flexmock()
+        flexmock(TransferClient).new_instances(mock)
+        mock.should_receive('get_status').and_return(
+                { 'status': TransferService.TRANSFER_IN_PROGRESS })
+
+
+    def testGetsNewEntries(self):
+        self.exp.id = 0
+        self.exp.save()
+        self.in_progress = SyncedExperiment(
+                experiment=self.exp, uid=self.uid, provider_url=self.url)
+        self.uid += 1
 
         self.in_progress.state = Requested()
         self.in_progress.save()
@@ -205,16 +222,11 @@ class ClockTestCase(TestCase):
         self.assertTrue(isinstance(new.state, InProgress))
             
     def testSkipsCompleteEntries(self):
-        
+        self.exp.id = 0
+        self.exp.save()
         self.finished = SyncedExperiment(
-                url ="www.finished.com", 
-                approved = True,
-                title = 'title2',
-                institution_name = 'institution2',
-                description = 'description2', 
-                created_by = self.user,
-                public = True 
-                )
+                experiment=self.exp, uid=self.uid, provider_url=self.url)
+        self.uid += 1
         self.finished.state = Complete()
         self.finished.save()
 
@@ -224,17 +236,11 @@ class ClockTestCase(TestCase):
         self.assertTrue(isinstance(new.state, Complete))
 
     def testSkipsFailedEntries(self):
-
+        self.exp.id = 0
+        self.exp.save()
         self.failed = SyncedExperiment(
-                url ="www.failed.com", 
-                approved = True,
-                title = 'title3',
-                institution_name = 'institution3', 
-                description = 'description3', 
-                created_by = self.user,
-                public = True 
-                )
-        
+                experiment=self.exp, uid=self.uid, provider_url=self.url)
+        self.uid += 1
         self.failed.state = FailPermanent()
         self.failed.save()
 
