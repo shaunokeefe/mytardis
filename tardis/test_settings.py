@@ -183,4 +183,7 @@ DOI_BASE_URL='http://mytardis.example.com'
 
 djcelery.setup_loader()
 
+# tardis.apps.sync
+MYTARDIS_SITES_URL = 'http://localhost:8080/mytardis-sites.xml/'
+MYTARDIS_SITE_URL = 'http://localhost:8080/'
 SYNC_MANAGER = 'managers.default_manager'
