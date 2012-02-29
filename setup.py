@@ -31,5 +31,6 @@ setup(
         'south',
         'django-celery',
         'django-kombu',
+        'pytz',
         ],
 )
