@@ -32,5 +32,6 @@ setup(
         'django-celery',
         'django-kombu',
         'pytz',
+        'httplib2',
         ],
 )
