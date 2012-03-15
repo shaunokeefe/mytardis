@@ -1,5 +1,6 @@
 from os import path
 import djcelery
+from django.utils.log import dictConfig
 
 DEBUG = False
 
@@ -294,3 +295,59 @@ DOI_RELATED_INFO_ENABLE = False
 DOI_BASE_URL='http://mytardis.example.com'
 
 djcelery.setup_loader()
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'system': {
+            'format': '[%(asctime)s] %(levelname)-7s %(ip)-15s %(user)s %(method)s %(message)s %(status)s',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
+        },
+        'module': {
+            'format': '[%(asctime)s] %(levelname)-7s %(module)s %(funcName)s %(message)s',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
+        },
+    },
+    'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'module',
+        },
+        'systemlog': {
+            'level': SYSTEM_LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'system',
+            'filename': SYSTEM_LOG_FILENAME,
+            'maxBytes': SYSTEM_LOG_MAXBYTES,
+            'backupCount': 5,
+        },
+        'modulelog': {
+            'level': MODULE_LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'module',
+            'filename': MODULE_LOG_FILENAME,
+            'maxBytes': MODULE_LOG_MAXBYTES,
+            'backupCount': 5,
+        },
+    },
+    'loggers': {
+        __name__: {
+            'handlers': ['systemlog'],
+            'propagate': False,
+            'level': SYSTEM_LOG_LEVEL,
+        },
+        'tardis': {
+            'handlers': ['modulelog'],
+            'propagate': False,
+            'level': MODULE_LOG_LEVEL,
+        },
+    }
+}
+
+dictConfig(LOGGING)
