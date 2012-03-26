@@ -24,6 +24,8 @@ class Command(BaseCommand):
         except Experiment.DoesNotExist:
             raise CommandError('Invalid EPN (%s) provided' % (epn))
         
+        self.stdout.write('Preparing to transfer experiment %s\n' % (experiment)) 
+        
         try:
             owner_emails = []
             acls = ExperimentACL.objects.filter(experiment=experiment, isOwner=True)
@@ -33,12 +35,22 @@ class Command(BaseCommand):
                 
         except User.DoesNotExist:
             raise CommandError("No users found for experiment EPN:%s" % (epn))
-        
+          
+        if not owner_emails:
+	    self.stdout.write('No owners found for experiment\n')
+  	
+	self.stdout.write('Attempting to send  experiment to the following users:\n')
+        for email in owner_emails:
+            self.stdout.write('\t%s\n' % (email))
+ 
         try:
             ts = TransferService()
             sites = ts.push_experiment_to_institutions(experiment, owner_emails)
+            if not sites:
+                self.stdout.write('No successful transfers\n')
+
             for url, status in sites:
-                self.stdout.write('Pushed to url %s %s' % (url, 'succesfully' if status else 'unsuccessfully'))
+                self.stdout.write('Pushed to url %s %s' % (url, 'succesfully' if status else 'unsuccessfully\n'))
 		
         except TransferService.TransferError, e:
             raise CommandError('Error transferring experiment(EPN:%s): %s' % (epn, e))
